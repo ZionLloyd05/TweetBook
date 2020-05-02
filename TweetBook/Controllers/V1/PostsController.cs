@@ -1,9 +1,10 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Mvc;
+using System;
 using System.Collections.Generic;
-using Microsoft.AspNetCore.Mvc;
+using TweetBook.Contracts.V1;
 using TweetBook.Domain;
 
-namespace TweetBook.V1
+namespace TweetBook.Controllers.V1
 {
     public class PostsController : Controller
     {
@@ -18,7 +19,7 @@ namespace TweetBook.V1
             }
         }
 
-        [HttpGet("api/v1/posts")]
+        [HttpGet(ApiRoutes.Posts.GetAll)]
         public IActionResult GetAll()
         {
             return Ok(this.posts);
