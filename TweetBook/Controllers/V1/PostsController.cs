@@ -46,7 +46,11 @@ namespace TweetBook.Controllers.V1
             var baseUrl = $"{HttpContext.Request.Scheme}://{HttpContext.Request.Host.ToUriComponent()}";
             var locationUri = baseUrl + "/" + ApiRoutes.Posts.Get.Replace("{postId}", post.Id.ToString());
 
-            var response = new PostResponse() {Id = post.Id};
+            var response = new PostResponse()
+            {
+                Id = post.Id,
+                Name = post.Name
+            };
             return Created(locationUri, response);
         }
 
@@ -55,6 +59,7 @@ namespace TweetBook.Controllers.V1
         {
             var post = new Post()
             {
+                Id = postId,
                 Name = postRequest.Name
             };
 
