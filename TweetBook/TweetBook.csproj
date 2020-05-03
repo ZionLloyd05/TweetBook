@@ -13,9 +13,4 @@
     <PackageReference Include="Swashbuckle.AspNetCore" Version="5.0.0" />
   </ItemGroup>
 
-
-  <ItemGroup>
-    <Folder Include="V1\" />
-  </ItemGroup>
-
 </Project>
