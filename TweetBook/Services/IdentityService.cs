@@ -34,13 +34,13 @@ namespace TweetBook.Services
                 };
             }
 
-            var newUser = new IdentityUser
+            var user = new IdentityUser
             {
                 Email = email,
                 UserName = email
             };
 
-            var createdUser = await this.userManager.CreateAsync(newUser, password);
+            var createdUser = await this.userManager.CreateAsync(user, password);
 
             if (!createdUser.Succeeded)
             {
@@ -56,10 +56,10 @@ namespace TweetBook.Services
             {
                 Subject = new ClaimsIdentity(new[]
                 {
-                    new Claim(JwtRegisteredClaimNames.Sub, newUser.Email),
+                    new Claim(JwtRegisteredClaimNames.Sub, user.Email),
                     new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                    new Claim(JwtRegisteredClaimNames.Email, newUser.Email),
-                    new Claim("id", newUser.Id)
+                    new Claim(JwtRegisteredClaimNames.Email, user.Email),
+                    new Claim("id", user.Id)
                 }),
                 Expires = DateTime.UtcNow.AddHours(2),
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key),
