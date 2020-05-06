@@ -20,7 +20,12 @@ namespace TweetBook.Services
         private readonly TokenValidationParameters tokenValidationParameters;
         private readonly DataContext context;
 
-        public IdentityService(UserManager<IdentityUser> userManager, JwtSettings jwtSettings, TokenValidationParameters tokenValidationParameters, DataContext context)
+        public IdentityService(
+            UserManager<IdentityUser> userManager, 
+            JwtSettings jwtSettings, 
+            TokenValidationParameters tokenValidationParameters, 
+            DataContext context
+            )
         {
             this.userManager = userManager;
             this.jwtSettings = jwtSettings;
@@ -157,8 +162,9 @@ namespace TweetBook.Services
 
                 return principal;
             }
-            catch
+            catch(Exception ex)
             {
+                Console.WriteLine(ex.Message); 
                 return null;
             }
             

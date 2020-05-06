@@ -16,7 +16,7 @@ namespace TweetBook.Domain
 
         public DateTime ExpiryDate { get; set; }
 
-        public bool Used { get; set; }
+        public bool Used { get; set; } 
 
         public string UserId { get; set; }
 

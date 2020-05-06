@@ -24,4 +24,4 @@
             public const string Refresh = Base + "/identity/refresh";
         }
     }
-}
+} 
