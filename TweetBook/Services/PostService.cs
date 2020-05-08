@@ -18,17 +18,25 @@ namespace TweetBook.Services
 
         public async Task<List<Post>> GetPostsAsync()
         {
-            return await this.context.Posts.ToListAsync();
+            return await this.context.Posts
+                .Include(x => x.Tags)
+                .ToListAsync();
         }
 
         public async Task<Post> GetPostByIdAsync(Guid postId)
         {
-            return await this.context.Posts.SingleOrDefaultAsync(p => p.Id == postId);
+            return await this.context.Posts
+                .Include(x => x.Tags)
+                .SingleOrDefaultAsync(p => p.Id == postId);
         }
 
         public async Task<bool> CreatePostAsync(Post post)
         {
+            post.Tags?.ForEach(x => x.TagName = x.TagName.ToLower());
+
+            await AddNewTags(post);
             await this.context.Posts.AddAsync(post);
+
             var created = await this.context.SaveChangesAsync();
 
             return created > 0;
@@ -73,5 +81,32 @@ namespace TweetBook.Services
 
             return true;
         }
+
+        private async Task AddNewTags(Post post)
+        {
+            foreach (var tag in post.Tags)
+            {
+                var existingTag = await this.context.Tags
+                    .AsNoTracking()
+                    .SingleOrDefaultAsync(x => x.Name == tag.TagName);
+
+                if (existingTag != null)
+                    continue;
+
+                await this.context.Tags.AddAsync(
+                    new Tag()
+                    {
+                        Name = tag.TagName,
+                        CreatedOn = DateTime.UtcNow,
+                        CreatorId = post.UserId
+                    });
+            }
+        }
+
+        public async Task<List<Tag>> GetAllTagsAsync()
+        {
+            return await this.context.Tags.AsNoTracking().ToListAsync();
+        }
+
     }
 }

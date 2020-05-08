@@ -49,6 +49,7 @@ namespace TweetBook.Installers
                     x.TokenValidationParameters = tokenValidationParameters;
                 });
 
+            services.AddAuthorization();
 
             services.AddSwaggerGen(x =>
             {

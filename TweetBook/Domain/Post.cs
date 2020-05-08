@@ -1,7 +1,8 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Identity;
+using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using Microsoft.AspNetCore.Identity;
 
 namespace TweetBook.Domain
 {
@@ -16,5 +17,7 @@ namespace TweetBook.Domain
 
         [ForeignKey(nameof(UserId))]
         public IdentityUser User { get; set; }
+
+        public List<PostTag> Tags { get; set; }
     }
 }
