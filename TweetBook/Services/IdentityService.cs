@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using System;
 using System.Collections.Generic;
@@ -17,18 +18,21 @@ namespace TweetBook.Services
     public class IdentityService : IIdentityService
     {
         private readonly UserManager<IdentityUser> userManager;
+        private readonly IServiceProvider serviceProvider;
         private readonly JwtSettings jwtSettings;
         private readonly TokenValidationParameters tokenValidationParameters;
         private readonly DataContext context;
 
         public IdentityService(
             UserManager<IdentityUser> userManager, 
-            JwtSettings jwtSettings, 
+            JwtSettings jwtSettings,
+            IServiceProvider serviceProvider,
             TokenValidationParameters tokenValidationParameters, 
             DataContext context
             )
         {
             this.userManager = userManager;
+            this.serviceProvider = serviceProvider;
             this.jwtSettings = jwtSettings;
             this.tokenValidationParameters = tokenValidationParameters;
             this.context = context;
@@ -64,7 +68,8 @@ namespace TweetBook.Services
                 };
             }
 
-            await this.userManager.AddClaimAsync(newUser, new Claim("tags.view", "true"));
+            // manually adding roles to user
+            await this.userManager.AddToRoleAsync(newUser, "Admin");
 
             return await GenerateAuthenticationResultForUserAsync(newUser);
         }
@@ -187,6 +192,8 @@ namespace TweetBook.Services
             var tokenHandler = new JwtSecurityTokenHandler();
             var key = Encoding.ASCII.GetBytes(this.jwtSettings.Secret);
 
+           // IdentityOptions _options = new IdentityOptions();
+
             var claims = new List<Claim>
             {
                 new Claim(JwtRegisteredClaimNames.Sub, user.Email),
@@ -196,8 +203,28 @@ namespace TweetBook.Services
             };
 
             var userClaims = await this.userManager.GetClaimsAsync(user);
+            var userRoles = await this.userManager.GetRolesAsync(user);
 
             claims.AddRange(userClaims);
+
+            // In case of multiple roles, else it's not needed (would have just used .addRange)
+
+            var roleManager = this.serviceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+
+            foreach (var userRole in userRoles)
+            {
+                claims.Add(new Claim(ClaimTypes.Role, userRole));
+                var role = await roleManager.FindByNameAsync(userRole);
+
+                if (role != null)
+                {
+                    var roleClaims = await roleManager.GetClaimsAsync(role);
+                    foreach (var roleClaim in roleClaims)
+                    {
+                        claims.Add(roleClaim);
+                    }
+                }
+            }
 
             var tokenDescriptor = new SecurityTokenDescriptor
             {
