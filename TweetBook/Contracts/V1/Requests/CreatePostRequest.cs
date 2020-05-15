@@ -6,6 +6,6 @@ namespace TweetBook.Contracts.V1.Requests
     {
         public string Name { get; set; }
 
-        public List<CreateTagDto> Tags { get; set; }
+        public List<CreateTagRequest> Tags { get; set; }
     }
 }

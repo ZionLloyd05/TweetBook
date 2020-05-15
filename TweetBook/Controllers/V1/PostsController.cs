@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System;
@@ -19,16 +20,22 @@ namespace TweetBook.Controllers.V1
     {
 
         private readonly IPostService postService;
+        private readonly IMapper mapper;
 
-        public PostsController(IPostService postService)
+        public PostsController(IPostService postService, IMapper mapper)
         {
             this.postService = postService;
+            this.mapper = mapper;
         }
 
         [HttpGet(ApiRoutes.Posts.GetAll)]
         public async Task<IActionResult> GetAll()
         {
-            return Ok( await this.postService.GetPostsAsync());
+            var posts = await this.postService.GetPostsAsync();
+
+            var postResponses = this.mapper.Map<List<PostResponse>>(posts);
+
+            return Ok(postResponses);
         }
 
         [HttpGet(ApiRoutes.Posts.Get)]
@@ -39,7 +46,7 @@ namespace TweetBook.Controllers.V1
             if (post == null)
                 return NotFound();
 
-            return Ok(post);
+            return Ok(this.mapper.Map<PostResponse>(post));
         }
 
         [HttpPost(ApiRoutes.Posts.Create)]

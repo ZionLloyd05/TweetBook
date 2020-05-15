@@ -1,9 +1,14 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
+﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Server.HttpSys;
+using Microsoft.AspNetCore.Mvc;
+using System;
+using System.Linq;
+using System.Threading.Tasks;
 using TweetBook.Contracts.V1;
+using TweetBook.Contracts.V1.Requests;
+using TweetBook.Contracts.V1.Responses;
+using TweetBook.Domain;
+using TweetBook.Extensions;
 using TweetBook.Services;
 
 namespace TweetBook.Controllers.V1
@@ -23,7 +28,55 @@ namespace TweetBook.Controllers.V1
         {
             var tags = await this.postService.GetAllTagsAsync();
 
-            return Ok(tags);
+            var tagResponses = tags.Select(tag => new TagResponse
+            {
+                Name = tag.Name
+            });
+
+            return Ok(tagResponses);
+        }
+
+        [HttpGet(ApiRoutes.Tags.Get)]
+        public async Task<IActionResult> Get([FromRoute] string tagName)
+        {
+            var tag = await this.postService.GetTagByNameAsync(tagName);
+
+            if (tag == null)
+                return NotFound();
+
+            var tagResponse = new TagResponse
+            {
+                Name = tag.Name
+            };
+
+            return Ok(tagResponse);
+        }
+
+        [HttpPost(ApiRoutes.Tags.Create)]
+        public async Task<IActionResult> Create([FromBody] CreateTagRequest tagRequest)
+        {
+            var newTag = new Tag
+            {
+                Name = tagRequest.Name,
+                CreatorId = HttpContext.GetUserId(),
+                CreatedOn = DateTime.UtcNow
+            };
+
+            var created = await this.postService.CreateTagAsync(newTag);
+
+            if (!created)
+            {
+                return BadRequest("Unable to create tag");
+            }
+
+            var tagResponse = new TagResponse
+            {
+                Name = newTag.Name
+            };
+
+            var baseUrl = $"{HttpContext.Request.Scheme}://{HttpContext.Request.Host.ToUriComponent()}";
+            var locationUri = baseUrl + "/" + ApiRoutes.Tags.Get.Replace("{tagName}", newTag.Name);
+            return Created(locationUri, tagResponse);
         }
     }
 }

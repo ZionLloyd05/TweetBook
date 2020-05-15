@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using TweetBook.Data;
 using TweetBook.Domain;
@@ -80,6 +81,40 @@ namespace TweetBook.Services
             }
 
             return true;
+        }
+
+        public async Task<Tag> GetTagByNameAsync(string tagName)
+        {
+            return await this.context.Tags.AsNoTracking().SingleOrDefaultAsync(x => x.Name == tagName.ToLower());
+        }
+
+        public async Task<bool> CreateTagAsync(Tag tag)
+        {
+            tag.Name = tag.Name.ToLower();
+            var existingTag = await this.context.Tags.AsNoTracking().SingleOrDefaultAsync(x => x.Name == tag.Name);
+            if (existingTag != null)
+                return true;
+
+            await this.context.Tags.AddAsync(tag);
+            var created = await this.context.SaveChangesAsync();
+
+            return created > 0;
+        }
+
+        public async Task<bool> DeleteTagAsync(string tagName)
+        {
+            var tag = await this.context.Tags.AsNoTracking().SingleOrDefaultAsync(x => x.Name == tagName.ToLower());
+
+            if (tag == null)
+                return true;
+
+            var postTags = await this.context.PostTags.Where(x => x.TagName == tagName.ToLower()).ToListAsync();
+
+            this.context.PostTags.RemoveRange(postTags);
+
+            this.context.Tags.Remove(tag);
+
+            return await this.context.SaveChangesAsync() > postTags.Count;
         }
 
         private async Task AddNewTags(Post post)

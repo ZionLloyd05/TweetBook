@@ -9,6 +9,6 @@ namespace TweetBook.Contracts.V1.Responses
 
         public string Name { get; set; }
 
-        public List<TagResponse> Tags { get; set; }
+        public IEnumerable<TagResponse> Tags { get; set; }
     }
 }
